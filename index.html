@@ -49,17 +49,47 @@
         }
         
         .search-box {
-            display: flex;
-            gap: 10px;
+            position: relative;
             margin-bottom: 20px;
         }
         
-        input[type="text"] {
+        .combo-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #searchInput {
             flex: 1;
             padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 16px;
+            width: 100%;
+        }
+        
+        #searchDropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+        }
+        
+        #searchDropdown div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        #searchDropdown div:hover {
+            background-color: #f5f5f5;
         }
         
         button {
@@ -71,6 +101,7 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+            white-space: nowrap;
         }
         
         button:hover {
@@ -151,7 +182,7 @@
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
             
-            .search-box {
+            .combo-box {
                 flex-direction: column;
             }
         }
@@ -163,12 +194,15 @@
         
         <div class="search-container">
             <div class="instructions">
-                <p>输入天干地支（如"甲子"）或纳音名称（如"海中金"）进行查询</p>
+                <p>输入或选择天干地支（如"甲子"）或纳音名称（如"海中金"）进行查询</p>
             </div>
             
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="例如: 甲子 或 海中金">
-                <button id="searchBtn">查询</button>
+                <div class="combo-box">
+                    <input type="text" id="searchInput" placeholder="例如: 甲子 或 海中金" autocomplete="off">
+                    <button id="searchBtn">查询</button>
+                </div>
+                <div id="searchDropdown"></div>
             </div>
             
             <div class="result-card" id="result" style="display: none;">
@@ -250,6 +284,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const searchBtn = document.getElementById('searchBtn');
             const searchInput = document.getElementById('searchInput');
+            const searchDropdown = document.getElementById('searchDropdown');
             const resultDiv = document.getElementById('result');
             const fullListDiv = document.getElementById('fullList');
             
@@ -270,25 +305,55 @@
                 fullListDiv.innerHTML = html;
             }
             
+            // 更新下拉菜单
+            function updateDropdown(filter = '') {
+                searchDropdown.innerHTML = '';
+                const filtered = nayinData.filter(item => 
+                    item.干支.includes(filter) || 
+                    item.纳音.includes(filter)
+                );
+                
+                if (filtered.length > 0) {
+                    filtered.forEach(item => {
+                        const option = document.createElement('div');
+                        option.textContent = `${item.干支} (${item.纳音})`;
+                        option.addEventListener('click', () => {
+                            searchInput.value = item.干支;
+                            searchDropdown.style.display = 'none';
+                            showResult(item);
+                        });
+                        searchDropdown.appendChild(option);
+                    });
+                    searchDropdown.style.display = 'block';
+                } else {
+                    searchDropdown.style.display = 'none';
+                }
+            }
+            
+            // 显示结果
+            function showResult(item) {
+                document.getElementById('resultGanzhi').textContent = item.干支;
+                document.getElementById('resultNayin').textContent = item.纳音;
+                document.getElementById('resultWuxing').textContent = item.五行;
+                document.getElementById('resultWuxing').className = `wuxing ${item.五行}`;
+                resultDiv.style.display = 'block';
+            }
+            
             // 查询功能
             function search() {
                 const query = searchInput.value.trim();
                 if (!query) return;
                 
                 const result = nayinData.find(item => 
-                    item.干支.includes(query) || 
-                    item.纳音.includes(query)
+                    item.干支 === query || 
+                    item.纳音 === query
                 );
                 
                 if (result) {
-                    document.getElementById('resultGanzhi').textContent = result.干支;
-                    document.getElementById('resultNayin').textContent = result.纳音;
-                    document.getElementById('resultWuxing').textContent = result.五行;
-                    document.getElementById('resultWuxing').className = `wuxing ${result.五行}`;
-                    resultDiv.style.display = 'block';
+                    showResult(result);
                 } else {
                     resultDiv.style.display = 'none';
-                    alert('未找到匹配的结果');
+                    alert('未找到精确匹配的结果，请从下拉列表中选择');
                 }
             }
             
@@ -297,8 +362,17 @@
             
             // 事件监听
             searchBtn.addEventListener('click', search);
+            searchInput.addEventListener('input', () => updateDropdown(searchInput.value));
+            searchInput.addEventListener('focus', () => updateDropdown(searchInput.value));
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') search();
+            });
+            
+            // 点击页面其他位置关闭下拉
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-box')) {
+                    searchDropdown.style.display = 'none';
+                }
             });
         });
     </script>
