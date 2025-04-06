@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>60甲子纳音五行查询</title>
+    <style>
+        :root {
+            --primary-color: #3a5a78;
+            --secondary-color: #588157;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #ddd;
+            --wuxing-jin: #ffd700;
+            --wuxing-mu: #2e8b57;
+            --wuxing-shui: #4682b4;
+            --wuxing-huo: #ff4500;
+            --wuxing-tu: #cd853f;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .search-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2c4762;
+        }
+        
+        .result-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .result-card h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+        
+        .nayin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .nayin-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .nayin-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ganzhi {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .nayin {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .wuxing {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .金 { background-color: var(--wuxing-jin); }
+        .木 { background-color: var(--wuxing-mu); color: white; }
+        .水 { background-color: var(--wuxing-shui); color: white; }
+        .火 { background-color: var(--wuxing-huo); color: white; }
+        .土 { background-color: var(--wuxing-tu); color: white; }
+        
+        .instructions {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        @media (max-width: 600px) {
+            .nayin-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>60甲子纳音五行查询</h1>
+        
+        <div class="search-container">
+            <div class="instructions">
+                <p>输入天干地支（如"甲子"）或纳音名称（如"海中金"）进行查询</p>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="例如: 甲子 或 海中金">
+                <button id="searchBtn">查询</button>
+            </div>
+            
+            <div class="result-card" id="result" style="display: none;">
+                <h3 id="resultGanzhi"></h3>
+                <p>纳音: <span id="resultNayin"></span></p>
+                <p>五行: <span id="resultWuxing" class="wuxing"></span></p>
+            </div>
+        </div>
+        
+        <h2>60甲子纳音五行全表</h2>
+        <div class="nayin-grid" id="fullList"></div>
+    </div>
+
+    <script>
+        // 完整60甲子纳音五行数据
+        const nayinData = [
+            {"干支": "甲子", "纳音": "海中金", "五行": "金"},
+            {"干支": "乙丑", "纳音": "海中金", "五行": "金"},
+            {"干支": "丙寅", "纳音": "炉中火", "五行": "火"},
+            {"干支": "丁卯", "纳音": "炉中火", "五行": "火"},
+            {"干支": "戊辰", "纳音": "大林木", "五行": "木"},
+            {"干支": "己巳", "纳音": "大林木", "五行": "木"},
+            {"干支": "庚午", "纳音": "路旁土", "五行": "土"},
+            {"干支": "辛未", "纳音": "路旁土", "五行": "土"},
+            {"干支": "壬申", "纳音": "剑锋金", "五行": "金"},
+            {"干支": "癸酉", "纳音": "剑锋金", "五行": "金"},
+            {"干支": "甲戌", "纳音": "山头火", "五行": "火"},
+            {"干支": "乙亥", "纳音": "山头火", "五行": "火"},
+            {"干支": "丙子", "纳音": "涧下水", "五行": "水"},
+            {"干支": "丁丑", "纳音": "涧下水", "五行": "水"},
+            {"干支": "戊寅", "纳音": "城头土", "五行": "土"},
+            {"干支": "己卯", "纳音": "城头土", "五行": "土"},
+            {"干支": "庚辰", "纳音": "白蜡金", "五行": "金"},
+            {"干支": "辛巳", "纳音": "白蜡金", "五行": "金"},
+            {"干支": "壬午", "纳音": "杨柳木", "五行": "木"},
+            {"干支": "癸未", "纳音": "杨柳木", "五行": "木"},
+            {"干支": "甲申", "纳音": "泉中水", "五行": "水"},
+            {"干支": "乙酉", "纳音": "泉中水", "五行": "水"},
+            {"干支": "丙戌", "纳音": "屋上土", "五行": "土"},
+            {"干支": "丁亥", "纳音": "屋上土", "五行": "土"},
+            {"干支": "戊子", "纳音": "霹雳火", "五行": "火"},
+            {"干支": "己丑", "纳音": "霹雳火", "五行": "火"},
+            {"干支": "庚寅", "纳音": "松柏木", "五行": "木"},
+            {"干支": "辛卯", "纳音": "松柏木", "五行": "木"},
+            {"干支": "壬辰", "纳音": "长流水", "五行": "水"},
+            {"干支": "癸巳", "纳音": "长流水", "五行": "水"},
+            {"干支": "甲午", "纳音": "砂中金", "五行": "金"},
+            {"干支": "乙未", "纳音": "砂中金", "五行": "金"},
+            {"干支": "丙申", "纳音": "山下火", "五行": "火"},
+            {"干支": "丁酉", "纳音": "山下火", "五行": "火"},
+            {"干支": "戊戌", "纳音": "平地木", "五行": "木"},
+            {"干支": "己亥", "纳音": "平地木", "五行": "木"},
+            {"干支": "庚子", "纳音": "壁上土", "五行": "土"},
+            {"干支": "辛丑", "纳音": "壁上土", "五行": "土"},
+            {"干支": "壬寅", "纳音": "金箔金", "五行": "金"},
+            {"干支": "癸卯", "纳音": "金箔金", "五行": "金"},
+            {"干支": "甲辰", "纳音": "覆灯火", "五行": "火"},
+            {"干支": "乙巳", "纳音": "覆灯火", "五行": "火"},
+            {"干支": "丙午", "纳音": "天河水", "五行": "水"},
+            {"干支": "丁未", "纳音": "天河水", "五行": "水"},
+            {"干支": "戊申", "纳音": "大驿土", "五行": "土"},
+            {"干支": "己酉", "纳音": "大驿土", "五行": "土"},
+            {"干支": "庚戌", "纳音": "钗钏金", "五行": "金"},
+            {"干支": "辛亥", "纳音": "钗钏金", "五行": "金"},
+            {"干支": "壬子", "纳音": "桑柘木", "五行": "木"},
+            {"干支": "癸丑", "纳音": "桑柘木", "五行": "木"},
+            {"干支": "甲寅", "纳音": "大溪水", "五行": "水"},
+            {"干支": "乙卯", "纳音": "大溪水", "五行": "水"},
+            {"干支": "丙辰", "纳音": "沙中土", "五行": "土"},
+            {"干支": "丁巳", "纳音": "沙中土", "五行": "土"},
+            {"干支": "戊午", "纳音": "天上火", "五行": "火"},
+            {"干支": "己未", "纳音": "天上火", "五行": "火"},
+            {"干支": "庚申", "纳音": "石榴木", "五行": "木"},
+            {"干支": "辛酉", "纳音": "石榴木", "五行": "木"},
+            {"干支": "壬戌", "纳音": "大海水", "五行": "水"},
+            {"干支": "癸亥", "纳音": "大海水", "五行": "水"}
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchBtn = document.getElementById('searchBtn');
+            const searchInput = document.getElementById('searchInput');
+            const resultDiv = document.getElementById('result');
+            const fullListDiv = document.getElementById('fullList');
+            
+            // 显示完整列表
+            function displayFullList() {
+                let html = '';
+                
+                nayinData.forEach(item => {
+                    html += `
+                        <div class="nayin-item">
+                            <div class="ganzhi">${item.干支}</div>
+                            <div class="nayin">${item.纳音}</div>
+                            <div class="wuxing ${item.五行}">${item.五行}</div>
+                        </div>
+                    `;
+                });
+                
+                fullListDiv.innerHTML = html;
+            }
+            
+            // 查询功能
+            function search() {
+                const query = searchInput.value.trim();
+                if (!query) return;
+                
+                const result = nayinData.find(item => 
+                    item.干支.includes(query) || 
+                    item.纳音.includes(query)
+                );
+                
+                if (result) {
+                    document.getElementById('resultGanzhi').textContent = result.干支;
+                    document.getElementById('resultNayin').textContent = result.纳音;
+                    document.getElementById('resultWuxing').textContent = result.五行;
+                    document.getElementById('resultWuxing').className = `wuxing ${result.五行}`;
+                    resultDiv.style.display = 'block';
+                } else {
+                    resultDiv.style.display = 'none';
+                    alert('未找到匹配的结果');
+                }
+            }
+            
+            // 初始化
+            displayFullList();
+            
+            // 事件监听
+            searchBtn.addEventListener('click', search);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') search();
+            });
+        });
+    </script>
+</body>
+</html>
